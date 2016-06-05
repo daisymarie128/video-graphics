@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="ga vivid video">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style/main.css">
+    <title>GA VIVID</title>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script type="x-shader/x-vertex" id="vertexshader">
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentshader">
+      uniform sampler2D tDiffuse;
+      varying vec2 vUv;
+
+      void main() {
+        vec2 p = vUv;
+        if (p.x > 0.5) p.x = 1.0 - p.x;
+        vec4 color = texture2D(tDiffuse, p);
+        gl_FragColor = color;
+      }
+    </script>
+
+    <script id="splinevertexShader" type="x-shader/x-vertex">
+      uniform vec2 uvScale;
+      varying vec2 vUv;
+      // switch on high precision floats
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }
+		</script>
+		<script id="splinefragmentShader" type="x-shader/x-fragment">
+			uniform float time;
+			uniform vec2 resolution;
+			varying vec2 vUv;
+
+			void main(void){
+        vec2 position = vUv / resolution.xy;
+        float red = abs(sin(position.x * position.y + time / 5.0)) + 0.8;
+        float green = abs(sin(position.x * position.y + time / 0.4));
+        float blue = abs(sin(position.x * position.y + time / 0.9));
+        gl_FragColor = vec4(red, green, blue, 1.0);
+			}
+		</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
+    <script src="http://www.matthieubessol.com/glitch/js/OrbitControls.js"></script>
+    <script src="http://www.matthieubessol.com/glitch/js/Tween.js"></script>
+    <script src="libs/postshaders/CopyShader.js"></script>
+    <script src="libs/postshaders/DigitalGlitch.js"></script>
+    <script src="libs/postshaders/DotShader.js"></script>
+    <script src="libs/postshaders/RGBShiftShader.js"></script>
+    <script src="libs/postprocessing/EffectComposer.js"></script>
+    <script src="libs/postprocessing/RenderPass.js"></script>
+    <script src="libs/postprocessing/MaskPass.js"></script>
+    <script src="libs/postprocessing/ShaderPass.js"></script>
+    <script src="libs/postprocessing/GlitchPass.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

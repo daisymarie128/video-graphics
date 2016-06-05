@@ -1,0 +1,16 @@
+body {
+  /*animation: pulse 3s infinite;*/
+  background-color: #424242;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #283593;
+  }
+  50% {
+    background-color: #7B1FA2;
+  }
+  100% {
+    background-color: #283593;
+  }
+}
