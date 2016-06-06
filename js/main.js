@@ -22,7 +22,12 @@ var container,
     dotEffect,
     RGBEffect,
     controls,
-    composer;
+    composer,
+    height = window.innerHeight,
+    particles = new THREE.Object3D(),
+    amountParticles = 50,
+    centerVector = new THREE.Vector3(0, 0, 0),
+    floorMesh;
 
 init();
 animate();
@@ -32,12 +37,14 @@ function init() {
     container = document.getElementById( 'container' );
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.y = 1000;
-    camera.position.z = -200;
+    camera.position.z = -100;
 
     scene = new THREE.Scene();
     createScene();
+    createGroundParticles();
+    scene.add(particles);
 
-    renderer = new THREE.WebGLRenderer({alpha: true});
+    renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     var renderColor = new THREE.Color('#00FF7F')
@@ -117,6 +124,7 @@ function compositingSetup() {
 
   // add glitch
   var glitch = new THREE.GlitchPass();
+  glitch.renderToScreen = true;
   composer.addPass(glitch);
 
   // mirror effect
@@ -149,7 +157,7 @@ function createWeirdSpline() {
     points.push(new THREE.Vector3(x, y, z));
   };
   var spline = new THREE.CatmullRomCurve3(points);
-  var circleRadius = 55;
+  var circleRadius = 35;
   var circleShape = new THREE.Shape();
   circleShape.moveTo(0, circleRadius);
   circleShape.quadraticCurveTo(circleRadius, circleRadius, circleRadius, 0);
@@ -192,14 +200,43 @@ function createWeirdSpline() {
   splineVerticle.scale.y = splineHorizontal.scale.y * 2.0;
   splineVerticle.scale.z = splineHorizontal.scale.z * 2.0;
   scene.add(splineVerticle);
-
 }
 
-function onWindowResize( event ) {
+function createGroundParticles(){
+  var worldWidth = 60, worldDepth = 20;
+  data = generateHeight(worldWidth, worldDepth);
+
+  var geometry = new THREE.PlaneBufferGeometry(2000, 1000, 100, 100);
+  geometry.rotateX(- Math.PI / 2);
+
+  var vertices = geometry.attributes.position.array;
+
+  for (var i = 0, j = 0, l = vertices.length; i  < l; i ++, j += 3) {
+
+    vertices[j + 1] = data[i] * 10;
+
+  }
+
+  var pink = new THREE.Color( "#1565C0" );
+  var particleMaterial = new THREE.PointsMaterial({
+    color: pink,
+    size: 4
+   });
+
+
+  floorMesh = new THREE.Points(geometry, particleMaterial);
+  console.log( floorMesh)
+  // mesh.position.z = 900;
+  floorMesh.position.set(50, 0, 0);
+  // mesh.position.y = -1000;
+  scene.add(floorMesh);
+};
+
+function onWindowResize(event){
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-}
+};
 
 function animate() {
   render();
@@ -227,6 +264,13 @@ function animate() {
   splineVerticle.rotation.z += Math.cos(clock.getElapsedTime()) * 0.1;
   // splineVerticle.rotation.y = Math.abs(Math.cos(clock.getElapsedTime() * (Math.random() * .5)));
   // splineVerticle.rotation.y += Math.cos(clock.getElapsedTime()) * 0.05;
+
+  // floor animation
+  // for (var i = 6; i < amountParticles * amountParticles; i++) {
+  //   var particle = particles.children[i];
+  //   particle.position.y = (Math.sin((particle.position.x + clock.getElapsedTime()) / 4) * Math.cos((particle.position.z + clock.getElapsedTime()) / 4)) * 3 * (Math.sin(clock.getElapsedTime()));
+  // }
+
 
 
   // for (var i = 1; i < scene.children.length - 1; i++) {
