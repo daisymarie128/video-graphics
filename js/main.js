@@ -15,7 +15,7 @@ var container,
     plane,
     sphere,
     light,
-    box,
+    shapeMesh,
     sphereMesh,
     scaleSphere,
     sphereClone,
@@ -49,8 +49,7 @@ function init() {
 }
 
 function createScene() {
-  var cube = new THREE.CubeGeometry(200, 200, 200);
-  var boxMaterial = new THREE.MeshPhongMaterial({
+  var shapeMeshMaterial = new THREE.MeshPhongMaterial({
     color: new THREE.Color('#00FF7F'),
     wireframeLinewidth: 3,
     wireframe: true,
@@ -58,13 +57,18 @@ function createScene() {
     shininess: 200,
     emissive: '#fff',
   });
-  var geometry = new THREE.IcosahedronGeometry(300,2);
-	material = new THREE.MeshPhongMaterial( { color: 0x03405f, wireframe: true, wireframeLinewidth: 2 } );
-  // Create box around the sphere.
-  box = new THREE.Mesh( geometry, material );
-  // box = new THREE.Mesh(cube, boxMaterial);
-  box.position.set(50, 0, 0);
-  scene.add(box);
+  var icosahedronGeometry = new THREE.IcosahedronGeometry(300, 2);
+	material = new THREE.MeshPhongMaterial({color: 0x03405f, wireframe: true, wireframeLinewidth: 2});
+
+  // different style using a cube - could possibly be deleted
+  // var cube = new THREE.CubeGeometry(200, 200, 200);
+
+  // create a shape which we will use as a wireframe for asthetics
+  // shapeMesh = new THREE.Mesh(cube, shapeMeshMaterial);
+  shapeMesh = new THREE.Mesh(icosahedronGeometry, material);
+
+  shapeMesh.position.set(50, 0, 0);
+  scene.add(shapeMesh);
 
   // Create the sphere.
   var sphere = new THREE.SphereGeometry(100, 3, 3);
@@ -81,12 +85,11 @@ function createScene() {
     sphereClone.position.x = (Math.random() * 501 - 200) * 2.0;
     sphereClone.position.y = (Math.random() * 501 - 200) * 2.0;
     sphereClone.position.z = (Math.random() * 501 - 200) * 2.0;
-    scene.add( sphereClone );
-  }
+    scene.add(sphereClone);
+  };
 
   // Set position to the sphere.
   sphereMesh.position.set(1, 200, 1);
-  // scene.add(sphereMesh);
 
   createWeirdSpline();
 
@@ -119,7 +122,7 @@ function compositingSetup() {
   // mirror effect
   uniforms = {
       diffuse: { type: "t", value: null },
-      side: { type: "i", value: 1 }
+      side: { type: "f", value: 1.0 }
   };
   var mirrorEffect = THREE.MirrorShader = {
       uniforms: uniforms,
@@ -203,9 +206,9 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Box rotation around the sphere.
-  dotEffect.uniforms['scale'].value = getRandomInt(0.01, 10);
+  // dotEffect.uniforms['scale'].value = getRandomInt(0.01, 10);
   RGBEffect.uniforms['amount'].value = getRandomInt(0.000035, 0.02);
-  box.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
+  shapeMesh.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
 
 
 
@@ -216,7 +219,7 @@ function animate() {
   splineHorizontal.rotation.x += Math.sin(clock.getElapsedTime()) * 0.1;
   // splineHorizontal.rotation.y = Math.abs(Math.sin(clock.getElapsedTime() * (Math.random() * .5)));
   splineHorizontal.rotation.y += Math.sin(clock.getElapsedTime()) * 0.05;
-  box.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
+  shapeMesh.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
 
   // splineVerticle.scale.y += Math.cos(clock.getElapsedTime() * Math.PI) / 100;
   // splineVerticle.scale.x += Math.cos(clock.getElapsedTime() * Math.PI) / 100;
