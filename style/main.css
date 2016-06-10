@@ -1,6 +1,9 @@
 body {
   /*animation: pulse 3s infinite;*/
-  background-color: #424242;
+  /*background-color: #424242;*/
+  /*background: url("http://gf1.geo.gfsrv.net/cdn09/3f1cb3e1709fa2fa1c06b70a3e64a9.jpg");*/
+  cursor: none;
+  margin: 0;
 }
 
 @keyframes pulse {

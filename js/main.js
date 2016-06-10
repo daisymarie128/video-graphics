@@ -11,6 +11,8 @@ var container,
     uniforms,
     scene,
     camera,
+    camPosIndex,
+    spline,
     clock = new THREE.Clock,
     plane,
     sphere,
@@ -32,17 +34,30 @@ function init() {
     container = document.getElementById( 'container' );
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.y = 1000;
-    camera.position.z = -200;
-
+    camera.position.z = -20;
+    camPosIndex = 0;
     scene = new THREE.Scene();
     createScene();
+    createSplinePath();
 
     renderer = new THREE.WebGLRenderer({alpha: true});
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    var renderColor = new THREE.Color('#00FF7F')
-    renderer.setClearColor(0x000000, 0);
+    var renderColor = new THREE.Color('#000')
+    renderer.setClearColor(renderColor, 0.9);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls.autoRotate = true;
+    // controls.keyPanSpeed = 20;
+    // controls.autoRotateSpeed = 4;
+    // controls.zoom0 = -300;
+    // controls.target.x = 500;
+    // controls.target.y = 500;
+    // controls.target.z = 500;
+
+    setInterval(function () {
+      zoomIn = true;
+    }, 5000);
+
     document.body.appendChild(renderer.domElement);
     compositingSetup();
     window.addEventListener('resize', onWindowResize);
@@ -50,15 +65,17 @@ function init() {
 
 function createScene() {
   var shapeMeshMaterial = new THREE.MeshPhongMaterial({
-    color: new THREE.Color('#00FF7F'),
+    color: new THREE.Color('#A766FF'),
     wireframeLinewidth: 3,
     wireframe: true,
     shininess: 0,
     shininess: 200,
     emissive: '#fff',
   });
+
+  var color = new THREE.Color('#A766FF')
   var icosahedronGeometry = new THREE.IcosahedronGeometry(300, 2);
-	material = new THREE.MeshPhongMaterial({color: 0x03405f, wireframe: true, wireframeLinewidth: 2});
+	material = new THREE.MeshLambertMaterial({color: color, wireframe: true, wireframeLinewidth: 2});
 
   // different style using a cube - could possibly be deleted
   // var cube = new THREE.CubeGeometry(200, 200, 200);
@@ -67,24 +84,27 @@ function createScene() {
   // shapeMesh = new THREE.Mesh(cube, shapeMeshMaterial);
   shapeMesh = new THREE.Mesh(icosahedronGeometry, material);
 
-  shapeMesh.position.set(50, 0, 0);
+  shapeMesh.position.set(900, 0, 0);
   scene.add(shapeMesh);
 
   // Create the sphere.
   var sphere = new THREE.SphereGeometry(100, 3, 3);
   var sphereMaterial = new THREE.MeshPhongMaterial({
-      specular: '#FF1493',
-      color: '#FF4500',
-      emissive: '#00FF7F',
+      specular: '#D3F5FF',
+      color: '#03C8FF',
+      emissive: '#5901AF',
       shininess: 10
   });
   sphereMesh = new THREE.Mesh(sphere, sphereMaterial);
-  for (var i = 0; i < 10; i ++) {
+  for (var i = 0; i < 50; i ++) {
     sphereClone = sphereMesh.clone();
     sphereClone.rotation.x = (Math.random() * 360) * 2.0;
-    sphereClone.position.x = (Math.random() * 501 - 200) * 2.0;
-    sphereClone.position.y = (Math.random() * 501 - 200) * 2.0;
-    sphereClone.position.z = (Math.random() * 501 - 200) * 2.0;
+    sphereClone.position.x = (Math.random() * 801 - 400) * 2.0;
+    sphereClone.position.y = (Math.random() * 801 - 400) * 2.0;
+    sphereClone.position.z = (Math.random() * 801 - 400) * 2.0;
+    sphereClone.scale.x = (Math.random() * 2 - 1);
+    sphereClone.scale.y = (Math.random() * 2 - 1);
+    sphereClone.scale.z = (Math.random() * 2 - 1);
     scene.add(sphereClone);
   };
 
@@ -113,7 +133,7 @@ function compositingSetup() {
   // RGB effect
   RGBEffect = new THREE.ShaderPass(THREE.RGBShiftShader);
   RGBEffect.uniforms['amount'].value = 0.0035;
-  composer.addPass(RGBEffect);
+  // composer.addPass(RGBEffect);
 
   // add glitch
   var glitch = new THREE.GlitchPass();
@@ -195,6 +215,16 @@ function createWeirdSpline() {
 
 }
 
+function createSplinePath() {
+  var randomPoints = [];
+  for ( var i = 0; i < 100; i ++ ) {
+    randomPoints.push(
+      new THREE.Vector3(Math.random() * 200 - 100, Math.random() * 2000 - 1000, Math.random() * 200 - 100)
+    );
+  }
+  spline = new THREE.CatmullRomCurve3(randomPoints);
+}
+
 function onWindowResize( event ) {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -202,16 +232,17 @@ function onWindowResize( event ) {
 }
 
 function animate() {
-  render();
-  requestAnimationFrame(animate);
+
 
   // Box rotation around the sphere.
   // dotEffect.uniforms['scale'].value = getRandomInt(0.01, 10);
-  RGBEffect.uniforms['amount'].value = getRandomInt(0.000035, 0.02);
+  RGBEffect.uniforms['amount'].value = getRandomInt(0.000035, 0.009);
   shapeMesh.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
 
 
-
+  // controls.target.y = clock.getElapsedTime() + 100;
+  // controls.zoom = clock.getElapsedTime() + 100;
+  // camera.position.set(clock.getElapsedTime() + 100, clock.getElapsedTime() + 100, -clock.getElapsedTime() - 100);
   splineUniforms.time.value = clock.getElapsedTime();
   splineHorizontal.scale.y += Math.sin(clock.getElapsedTime() * Math.PI) / 100;
   splineHorizontal.scale.x += Math.sin(clock.getElapsedTime() * Math.PI) / 100;
@@ -219,20 +250,55 @@ function animate() {
   splineHorizontal.rotation.x += Math.sin(clock.getElapsedTime()) * 0.1;
   // splineHorizontal.rotation.y = Math.abs(Math.sin(clock.getElapsedTime() * (Math.random() * .5)));
   splineHorizontal.rotation.y += Math.sin(clock.getElapsedTime()) * 0.05;
-  shapeMesh.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
-
-  // splineVerticle.scale.y += Math.cos(clock.getElapsedTime() * Math.PI) / 100;
-  // splineVerticle.scale.x += Math.cos(clock.getElapsedTime() * Math.PI) / 100;
-  // splineVerticle.scale.z += Math.cos(clock.getElapsedTime() * Math.PI) / 100;
-  splineVerticle.rotation.z += Math.cos(clock.getElapsedTime()) * 0.1;
-  // splineVerticle.rotation.y = Math.abs(Math.cos(clock.getElapsedTime() * (Math.random() * .5)));
-  // splineVerticle.rotation.y += Math.cos(clock.getElapsedTime()) * 0.05;
-
+  // shapeMesh.rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
+  splineVerticle.rotation.z += 0.01;
 
   // for (var i = 1; i < scene.children.length - 1; i++) {
     // scene.children[i].rotateX(-0.01).rotateZ(-0.01).rotateY(-0.01);
   // }
+
+  camPosIndex++;
+  if (camPosIndex > 10000) {
+    camPosIndex = 0;
+  }
+  var camPos = spline.getPoint(camPosIndex / 10000);
+  var camRot = spline.getTangent(camPosIndex / 10000);
+
+  // camera.position.x = camPos.x;
+  camera.position.y = camPos.y;
+  // camera.position.z = camPos.z;
+
+  // camera.rotation.x = camRot.x;
+  // camera.rotation.y = camRot.y;
+  // camera.rotation.z = camRot.z;
+
+  camera.lookAt(spline.getPoint((camPosIndex+1) / 10000));
+
+  //
+  // camPosIndex++;
+  // if (camPosIndex > 10000) {
+  //   camPosIndex = 0;
+  //   // camera.position.y = 0
+  // }
+  //
+  // if (camera.position.z > -1500) {
+  //   --camera.position.z
+  //   console.log('hello', camera.position.z)
+  // }
+//   var camPos = spline.getPoint(camPosIndex / 10000);
+//   var camRot = spline.getTangent(camPosIndex / 10000);
+//   // camera.position.x = camPosIndex / 100;
+//   camera.position.x = clock.getElapsedTime() / 100;
+//   camera.position.y = clock.getElapsedTime();
+//   camera.position.z = camera.position.z + 1;
+//   //
+//   camera.rotation.z = clock.getElapsedTime();
+//
+// // camera.lookAt(spline.getPoint((camPosIndex+1) / 10000));
+
   composer.render();
+  render();
+  requestAnimationFrame(animate);
 }
 
 function render() {

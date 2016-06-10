@@ -18,11 +18,12 @@ var uniforms,
     circle2,
     cubes = [],
     cubeHolder = [],
+    stars = [],
     mesh,
     data,
     sphere, plane1, plane2, plane3, plane4;
 
-    var verticalMirror;
+var verticalMirror;
 
 var spherePosition = -180;
 var spherePresent = false;
@@ -38,7 +39,7 @@ var boost = 0;
 var request;
 
 var vertexHeight = 1;
-var Definition = 30;
+var Definition = 20;
 var Size = 50;
 
 var context;
@@ -59,10 +60,17 @@ window.onload = function(){
 
   // create a skybox
   var skyGeometry = new THREE.SphereGeometry(2000, 25, 25);
-  var texture = THREE.ImageUtils.loadTexture( "sky-dome.png" );
+
+  // this is deprecated
+  // use this instead
+  var texture =  new THREE.TextureLoader().load( "sky-dome.png" );
+
+  // shading isn't an option for this material
+  // link to list of attributes
+  //http://threejs.org/docs/#Reference/Materials/MeshLambertMaterial
   var skyMaterial = new THREE.MeshLambertMaterial({
-      map: texture,
-      shading: THREE.SmoothShading
+      map: texture
+      // shading: THREE.SmoothShading
   });
 
   var sky = new THREE.Mesh(skyGeometry, skyMaterial);
@@ -81,6 +89,7 @@ window.onload = function(){
 
   // createPlane()
   buildWalls()
+  makeStars()
 
     // createSphere();
 
@@ -98,14 +107,14 @@ window.onload = function(){
     }
 
     if(clock.getElapsedTime() >= 7){
-      addSphere()
+      // addSphere()
     }
 
-    if(clock.getElapsedTime() >= 10){
+    if(clock.getElapsedTime() >= 3){
       rotateCamera();
     }
 
-    if(clock.getElapsedTime() > 15){
+    if(clock.getElapsedTime() > 4){
       goForward();
     }
 
@@ -119,6 +128,19 @@ window.onload = function(){
     // camera.rotation.y += 0.001
     // camera.rotation.z += 0.005
 
+    // loop through each star
+		for(var i=0; i<stars.length; i++) {
+
+			star = stars[i];
+
+			// and move it forward dependent on the mouseY position.
+			star.position.z +=  i/10;
+
+			// if the particle is too close move it to the back
+			if(star.position.z>1000) star.position.z-=2000;
+
+		}
+
     renderer.render(scene, camera);
 
     requestAnimationFrame(update);
@@ -131,10 +153,12 @@ var addSphere = function(){
 
   //create sphere
   if(!spherePresent){
+    var texture = new THREE.TextureLoader().load( "images/bluey-purple.jpg" );
     var geometry = new THREE.SphereGeometry( Size, Definition, Definition );
-    material = new THREE.MeshNormalMaterial({
-           wireframe: true,
-            wireframeLinewidth: 1.2
+    material = new THREE.MeshBasicMaterial({
+          wireframe: true,
+          wireframeLinewidth: 1.5,
+          map: texture
         });
     sphere = new THREE.Mesh( geometry, material);
 
@@ -150,7 +174,7 @@ var updateSphere = function(){
   if(sphere.position.y >= 0){
     sphere.position.y = 0
   } else {
-    sphere.position.y += 1
+    sphere.position.y += 2
   }
   sphere.rotation.x += 0.01
   sphere.rotation.y += 0.01
@@ -162,7 +186,7 @@ var rotateCamera = function(){
 }
 
 var goForward = function(){
-  camera.position.z -= 5
+  camera.position.z -= 15
 }
 
 var stopCameraRotation = function(){
@@ -220,46 +244,120 @@ function updateVerts() {
 // }
 
 var buildWalls = function(){
+
+    // top and bottom
+    var textureTB = new THREE.TextureLoader().load( "images/greeny-particles-TB.jpg" );
+    textureTB.wrapS = THREE.MirroredRepeatWrapping;
+    textureTB.wrapT = THREE.MirroredRepeatWrapping;
+    textureTB.repeat.set( 1, 2 );
+
+    // left and right
+    var textureLR = new THREE.TextureLoader().load( "images/greeny-particles.jpg" );
+    textureLR.wrapS = THREE.RepeatWrapping;
+    textureLR.wrapT = THREE.RepeatWrapping;
+
+    textureLR.repeat.set( 2, 1 );
+
     //top wall
-     plane1 = new THREE.Mesh( new THREE.PlaneGeometry( 500, 3000, 10, 15 ), new THREE.MeshBasicMaterial( { color: 0xcccccc, wireframe : true } ) );
+     plane1 = new THREE.Mesh( new THREE.PlaneGeometry( 500, 3000, 10, 15 ), new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          wireframe: true,
+          wireframeLinewidth: 2.0,
+          map: textureTB
+      }));
      plane1.rotation.x = Math.PI/2;
      plane1.position.y = wallPosition;
      plane1.position.z = 50-1500;
      scene.add( plane1 );
 
      //left wall
-     plane2 = new THREE.Mesh( new THREE.PlaneGeometry( 3000, 500, 15, 5 ), new THREE.MeshBasicMaterial( { color: 0xcccccc, wireframe : true } ) );
+     plane2 = new THREE.Mesh( new THREE.PlaneGeometry( 3000, 500, 15, 5 ), new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          wireframe: true,
+          wireframeLinewidth: 2.0,
+          map: textureLR
+      }));
      plane2.rotation.y = Math.PI/2;
      plane2.position.x = -wallPosition;
      plane2.position.z = 50-1500;
      scene.add( plane2 );
 
      //right wall
-     plane3 = new THREE.Mesh( new THREE.PlaneGeometry( 3000, 500, 15, 5 ), new THREE.MeshBasicMaterial( { color: 0xcccccc, wireframe : true	} ) );
+     plane3 = new THREE.Mesh( new THREE.PlaneGeometry( 3000, 500, 15, 5 ), new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          wireframe: true,
+          wireframeLinewidth: 2.0,
+          map: textureLR
+       }));
      plane3.rotation.y = -Math.PI/2;
      plane3.position.x = wallPosition;
      plane3.position.z = 50-1500;
     scene.add( plane3 );
 
     //bottom wall
-     plane4 = new THREE.Mesh( new THREE.PlaneGeometry( 500, 3000, 5, 15 ), new THREE.MeshBasicMaterial( { color: 0xcccccc, wireframe : true	} ) );
+     plane4 = new THREE.Mesh( new THREE.PlaneGeometry( 500, 3000, 5, 15 ), new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          wireframe: true,
+          wireframeLinewidth: 2.0,
+          map: textureTB
+       }));
      plane4.rotation.x = -Math.PI/2;
      plane4.position.y = -wallPosition;
      plane4.position.z = 50-1500;
      scene.add( plane4 );
+
+
+    //  var directionalLight = new THREE.DirectionalLight( 0xffffff, 30.5 );
+    //  directionalLight.position.set( 0, 0, -400 );
+    // //  directionalLight.rotation.x = 90
+    //  scene.add( directionalLight );
+    //
+    //  directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 50);
+    //  camera.add( directionalLightHelper);
+    //  scene.add( directionalLightHelper );
 }
 
 var makeWallsAppear = function(){
   if(wallPosition <= 250){
     wallPosition = 250;
   } else {
-    wallPosition -= 7
+    wallPosition -= 15
   }
   plane1.position.y = wallPosition
   plane2.position.x = -wallPosition
   plane3.position.x = wallPosition
   plane4.position.y = -wallPosition
 
+}
+
+var makeStars = function() {
+  for ( var z= -4500; z < 4500; z+=20 ) {
+
+		// Make a sphere (exactly the same as before).
+		var geometry   = new THREE.SphereGeometry(0.8, 10, 10)
+    var texture =  new THREE.TextureLoader().load( "sky-dome.png" );
+		var material = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      map: texture
+    });
+		var sphere = new THREE.Mesh(geometry, material)
+
+		// This time we give the sphere random x and y positions between -500 and 500
+		sphere.position.x = Math.random() * 1000 - 500;
+		sphere.position.y = Math.random() * 1000 - 500;
+
+		// Then set the z position to where it is in the loop (distance of camera)
+		sphere.position.z = z;
+
+		// scale it up a bit
+		sphere.scale.x = sphere.scale.y = 2;
+
+		//add the sphere to the scene
+		scene.add( sphere );
+
+		//finally push it to the stars array
+		stars.push(sphere);
+	}
 }
 
 
